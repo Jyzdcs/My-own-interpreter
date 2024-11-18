@@ -37,38 +37,65 @@ class Scanner:
     def scan_token(self):
         value = self.advance()
 
-        if value == "(":
-            self.add_token("LEFT_PAREN")
-        elif value == ")":
-            self.add_token("RIGHT_PAREN")
-        elif value == "{":
-            self.add_token("LEFT_BRACE")
-        elif value == "}":
-            self.add_token("RIGHT_BRACE")
-        elif value == "*":
-            self.add_token("STAR")
-        elif value == ".":
-            self.add_token("DOT")
-        elif value == ",":
-            self.add_token("COMMA")
-        elif value == "+":
-            self.add_token("PLUS")
-        elif value == ";":
-            self.add_token("SEMICOLON")
-        elif value == "/":
-            self.add_token("SLASH")
-        elif value == "-":
-            self.add_token("MINUS")
-        elif value == "\n":
-            self.line += 1
-        elif value == "=":
-            if re.match("=", self.source[self.current:]) and self.source[self.current - 1:] != "=":
-                self.add_token("EGAL_EGAL")
-            else:
-                self.add_token("EGAL", "=")
-        else:
-            self.error(value)
-            
+        match value:
+            case "(":
+                self.add_token("LEFT_PAREN")
+            case ")":
+                self.add_token("RIGHT_PAREN")
+            case "{":
+                self.add_token("LEFT_BRACE")
+            case "}":
+                self.add_token("RIGHT_BRACE")
+            case "*":
+                self.add_token("STAR")
+            case ".":
+                self.add_token("DOT")
+            case ",":
+                self.add_token("COMMA")
+            case "+":
+                self.add_token("PLUS")
+            case ";":
+                self.add_token("SEMICOLON")
+            case "-":
+                self.add_token("MINUS")
+            case "\n":
+                self.line += 1
+            case "=":
+                if re.match("=", self.source[self.current:]):
+                        self.current += 1
+                        self.add_token("EQUAL_EQUAL")
+                else:
+                        self.add_token("EQUAL")
+            case "!":
+                if re.match("=", self.source[self.current:]):
+                        self.current += 1
+                        self.add_token("BANG_EQUAL")
+                else:
+                        self.add_token("BANG")
+            case "<":
+                if re.match("=", self.source[self.current:]):
+                    self.current += 1
+                    self.add_token("LESS_EQUAL")
+                else:
+                    self.add_token("LESS")
+            case ">":
+                if re.match("=", self.source[self.current:]):
+                    self.current += 1
+                    self.add_token("GREATER_EQUAL")
+                else:
+                    self.add_token("GREATER")
+            case "/":
+                if re.match("/", self.source[self.current:]):
+                    self.commented_line()
+                else:
+                    self.add_token("SLASH")
+            case _:
+                self.error(value)
+
+    def commented_line(self):
+        while not self.is_at_end() and self.advance() != '\n':
+            self.advance()
+
     def advance(self):
         self.current += 1
         return self.source[self.current - 1]
@@ -80,8 +107,6 @@ class Scanner:
     def error(self, char):
         self.errors.append(f"[line {self.line}] Error: Unexpected character: {char}")
         self.exit_code = 65
-
-
 
 def main():
     print("Logs from your program will appear here!", file=sys.stderr)
